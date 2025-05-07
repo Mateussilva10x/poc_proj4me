@@ -1,46 +1,33 @@
-# excel/report_generator.py
-
-import openpyxl
-from openpyxl.styles import Font
-from datetime import datetime
+from openpyxl import Workbook # type: ignore
 import os
 
-def generate_excel_report(data, output_path, mock=False): 
-    if mock: 
-        print(f"[MOCK] Gerando relatório Excel simulado em {output_path}") 
+def generate_excel_report(data, output_path="output/report.xlsx", mock=False):
+    if mock:
+        print(f"[MOCK] Gerando relatório Excel em: {output_path}")
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Relatório Simulado"
+        ws.append(["ID", "Nome", "Valor"])
+        ws.append([1, "Produto A", 100.0])
+        ws.append([2, "Produto B", 200.0])
+        ws.append([3, "Produto C", 300.0])
+        wb.save(output_path)
+        print(f"[MOCK] Relatório salvo em: {output_path}")
         return
-    """
-    Gera um arquivo .xlsx com base nos dados do banco.
-    Cada dicionário na lista representa uma linha, com chaves como cabeçalhos.
-    """
-    if not data:
-        print("[WARN] Nenhum dado para gerar o relatorio.")
-        return
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Relatorio"
-
-    # Cabeçalhos a partir das chaves do primeiro registro
-    headers = list(data[0].keys())
-    ws.append(headers)
-
-    # Negrito nos cabeçalhos
-    for col in range(1, len(headers) + 1):
-        ws.cell(row=1, column=col).font = Font(bold=True)
-
-    # Linhas de dados
-    for row in data:
-        ws.append(list(row.values()))
-
-    # Ajusta colunas para largura automática (simples)
-    for col in ws.columns:
-        max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
-        ws.column_dimensions[col[0].column_letter].width = max_length + 2
-
-    # Cria diretório de saida se não existir
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Relatório"
 
-    # Salva
+    # Cabeçalho
+    if data:
+        ws.append(list(data[0].keys()))
+        for row in data:
+            ws.append(list(row.values()))
+    else:
+        ws.append(["Sem dados"])
+
     wb.save(output_path)
-    print(f"[OK] Relatorio gerado: {output_path}")
+    print(f"[OK] Relatório Excel gerado em: {output_path}")
